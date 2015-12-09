@@ -5500,8 +5500,9 @@ const Builtin::Info XCoreTargetInfo::BuiltinInfo[] = {
 namespace {
   class Z80TargetInfo : public TargetInfo {
     static const char *const GCCRegNames[];
+    bool IsKnightOS;
   public:
-    Z80TargetInfo(const llvm::Triple &Triple) : TargetInfo(Triple) {
+    Z80TargetInfo(const llvm::Triple &Triple, const bool isKnightOS) : TargetInfo(Triple), IsKnightOS(isKnightOS) {
       BigEndian = false;
       TLSSupported = false;
       IntWidth = 16; IntAlign = 8;
@@ -5866,7 +5867,9 @@ static TargetInfo *AllocateTarget(const llvm::Triple &Triple) {
       return new SPIR64TargetInfo(Triple);
     }
   case llvm::Triple::z80:
-    return new Z80TargetInfo(Triple);
+    return new Z80TargetInfo(Triple, false);
+  case llvm::Triple::z80knight:
+    return new Z80TargetInfo(Triple, true);
   }
 }
 
