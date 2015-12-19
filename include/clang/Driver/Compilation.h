@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef CLANG_DRIVER_COMPILATION_H_
-#define CLANG_DRIVER_COMPILATION_H_
+#ifndef LLVM_CLANG_DRIVER_COMPILATION_H
+#define LLVM_CLANG_DRIVER_COMPILATION_H
 
 #include "clang/Driver/Job.h"
 #include "clang/Driver/Util.h"
@@ -37,6 +37,9 @@ class Compilation {
 
   /// The default tool chain.
   const ToolChain &DefaultToolChain;
+
+  const ToolChain *CudaHostToolChain;
+  const ToolChain *CudaDeviceToolChain;
 
   /// The original (untranslated) input argument list.
   llvm::opt::InputArgList *Args;
@@ -69,6 +72,9 @@ class Compilation {
   /// Redirection for stdout, stderr, etc.
   const StringRef **Redirects;
 
+  /// Whether we're compiling for diagnostic purposes.
+  bool ForDiagnostics;
+
 public:
   Compilation(const Driver &D, const ToolChain &DefaultToolChain,
               llvm::opt::InputArgList *Args,
@@ -78,6 +84,17 @@ public:
   const Driver &getDriver() const { return TheDriver; }
 
   const ToolChain &getDefaultToolChain() const { return DefaultToolChain; }
+  const ToolChain *getCudaHostToolChain() const { return CudaHostToolChain; }
+  const ToolChain *getCudaDeviceToolChain() const {
+    return CudaDeviceToolChain;
+  }
+
+  void setCudaHostToolChain(const ToolChain *HostToolChain) {
+    CudaHostToolChain = HostToolChain;
+  }
+  void setCudaDeviceToolChain(const ToolChain *DeviceToolChain) {
+    CudaDeviceToolChain = DeviceToolChain;
+  }
 
   const llvm::opt::InputArgList &getInputArgs() const { return *Args; }
 
@@ -91,7 +108,7 @@ public:
   JobList &getJobs() { return Jobs; }
   const JobList &getJobs() const { return Jobs; }
 
-  void addCommand(Command *C) { Jobs.addJob(C); }
+  void addCommand(std::unique_ptr<Command> C) { Jobs.addJob(std::move(C)); }
 
   const llvm::opt::ArgStringList &getTempFiles() const { return TempFiles; }
 
@@ -166,13 +183,17 @@ public:
   ///
   /// \param FailingCommands - For non-zero results, this will be a vector of
   /// failing commands and their associated result code.
-  void ExecuteJob(const Job &J,
-     SmallVectorImpl< std::pair<int, const Command *> > &FailingCommands) const;
+  void ExecuteJobs(
+      const JobList &Jobs,
+      SmallVectorImpl<std::pair<int, const Command *>> &FailingCommands) const;
 
   /// initCompilationForDiagnostics - Remove stale state and suppress output
   /// so compilation can be reexecuted to generate additional diagnostic
   /// information (e.g., preprocessed source(s)).
   void initCompilationForDiagnostics();
+
+  /// Return true if we're compiling for diagnostics.
+  bool isForDiagnostics() const { return ForDiagnostics; }
 };
 
 } // end namespace driver

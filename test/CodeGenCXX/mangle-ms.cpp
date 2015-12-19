@@ -1,5 +1,5 @@
-// RUN: %clang_cc1 -fblocks -emit-llvm %s -o - -cxx-abi microsoft -triple=i386-pc-win32 | FileCheck %s
-// RUN: %clang_cc1 -fblocks -emit-llvm %s -o - -cxx-abi microsoft -triple=x86_64-pc-win32 | FileCheck -check-prefix X64 %s
+// RUN: %clang_cc1 -fblocks -emit-llvm %s -o - -triple=i386-pc-win32 -std=c++98 | FileCheck %s
+// RUN: %clang_cc1 -fblocks -emit-llvm %s -o - -triple=x86_64-pc-win32 -std=c++98| FileCheck -check-prefix X64 %s
 
 int a;
 // CHECK-DAG: @"\01?a@@3HA"
@@ -95,9 +95,17 @@ extern int * const h1 = &a;
 // CHECK-DAG: @"\01?h1@@3QAHA"
 extern const int * const h2 = &a;
 // CHECK-DAG: @"\01?h2@@3QBHB"
+extern int * const __restrict h3 = &a;
+// CHECK-DAG: @"\01?h3@@3QIAHIA"
+// X64-DAG: @"\01?h3@@3QEIAHEIA"
 
 int i[10][20];
 // CHECK-DAG: @"\01?i@@3PAY0BE@HA"
+
+typedef int (*FunT)(int, int);
+FunT FunArr[10][20];
+// CHECK-DAG: @"\01?FunArr@@3PAY0BE@P6AHHH@ZA"
+// X64-DAG: @"\01?FunArr@@3PAY0BE@P6AHHH@ZA"
 
 int (__stdcall *j)(signed char, unsigned char);
 // CHECK-DAG: @"\01?j@@3P6GHCE@ZA"
@@ -108,6 +116,19 @@ const volatile char foo2::*k;
 
 int (foo2::*l)(int);
 // CHECK-DAG: @"\01?l@@3P8foo@@AEHH@ZQ1@"
+
+// Ensure typedef CV qualifiers are mangled correctly
+typedef const int cInt;
+typedef volatile int vInt;
+typedef const volatile int cvInt;
+
+extern cInt g_cInt = 1;
+vInt g_vInt = 2;
+cvInt g_cvInt = 3;
+
+// CHECK-DAG: @"\01?g_cInt@@3HB"
+// CHECK-DAG: @"\01?g_vInt@@3HC"
+// CHECK-DAG: @"\01?g_cvInt@@3HD"
 
 // Static functions are mangled, too.
 // Also make sure calling conventions, arglists, and throw specs work.
@@ -356,3 +377,63 @@ void TypedefNewDelete::operator delete[](void *) { }
 // CHECK-DAG: ??_UTypedefNewDelete@@SAPAXI@Z
 // CHECK-DAG: ??3TypedefNewDelete@@SAXPAX@Z
 // CHECK-DAG: ??_VTypedefNewDelete@@SAXPAX@Z
+
+void __vectorcall vector_func() { }
+// CHECK-DAG: @"\01?vector_func@@YQXXZ"
+
+template <void (*)(void)>
+void fn_tmpl() {}
+
+template void fn_tmpl<extern_c_func>();
+// CHECK-DAG: @"\01??$fn_tmpl@$1?extern_c_func@@YAXXZ@@YAXXZ"
+
+extern "C" void __attribute__((overloadable)) overloaded_fn() {}
+// CHECK-DAG: @"\01?overloaded_fn@@$$J0YAXXZ"
+
+namespace UnnamedType {
+struct S {
+  typedef struct {} *T1[1];
+  typedef struct {} T2;
+  typedef struct {} *T3, T4;
+  using T5 = struct {};
+  using T6 = struct {} *;
+};
+void f(S::T1) {}
+void f(S::T2) {}
+void f(S::T3) {}
+void f(S::T4) {}
+void f(S::T5) {}
+void f(S::T6) {}
+// CHECK-DAG: @"\01?f@UnnamedType@@YAXQAPAU<unnamed-type-T1>@S@1@@Z"
+// CHECK-DAG: @"\01?f@UnnamedType@@YAXUT2@S@1@@Z"
+// CHECK-DAG: @"\01?f@UnnamedType@@YAXPAUT4@S@1@@Z"
+// CHECK-DAG: @"\01?f@UnnamedType@@YAXUT4@S@1@@Z"
+// CHECK-DAG: @"\01?f@UnnamedType@@YAXUT5@S@1@@Z"
+// CHECK-DAG: @"\01?f@UnnamedType@@YAXPAU<unnamed-type-T6>@S@1@@Z"
+
+// X64-DAG: @"\01?f@UnnamedType@@YAXQEAPEAU<unnamed-type-T1>@S@1@@Z"
+// X64-DAG: @"\01?f@UnnamedType@@YAXUT2@S@1@@Z"
+// X64-DAG: @"\01?f@UnnamedType@@YAXPEAUT4@S@1@@Z"(%"struct.UnnamedType::S::T4"
+// X64-DAG: @"\01?f@UnnamedType@@YAXUT4@S@1@@Z"
+// X64-DAG: @"\01?f@UnnamedType@@YAXUT5@S@1@@Z"
+// X64-DAG: @"\01?f@UnnamedType@@YAXPEAU<unnamed-type-T6>@S@1@@Z"
+}
+
+namespace PassObjectSize {
+// NOTE: This mangling is subject to change.
+// Reiterating from the comment in MicrosoftMangle, the scheme is pretend a
+// parameter of type __clang::__pass_object_sizeN exists after each pass object
+// size param P, where N is the Type of the pass_object_size attribute on P.
+//
+// e.g. we want to mangle:
+//   void foo(void *const __attribute__((pass_object_size(0))));
+// as if it were
+//   namespace __clang { enum __pass_object_size0 : size_t {}; }
+//   void foo(void *const, __clang::__pass_object_size0);
+// where __clang is a top-level namespace.
+
+// CHECK-DAG: define i32 @"\01?foo@PassObjectSize@@YAHQAHW4__pass_object_size0@__clang@@@Z"
+int foo(int *const i __attribute__((pass_object_size(0)))) { return 0; }
+// CHECK-DAG: define i32 @"\01?bar@PassObjectSize@@YAHQAHW4__pass_object_size1@__clang@@@Z"
+int bar(int *const i __attribute__((pass_object_size(1)))) { return 0; }
+}

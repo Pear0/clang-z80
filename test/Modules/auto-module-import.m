@@ -1,6 +1,7 @@
 // RUN: rm -rf %t
-// RUN: %clang_cc1 -Wauto-import -fmodules-cache-path=%t -fmodules -F %S/Inputs %s -verify -DERRORS
-// RUN: %clang_cc1 -Wauto-import -fmodules-cache-path=%t -fmodules -F %S/Inputs %s -verify
+// RUN: %clang_cc1 -Wauto-import -fmodules-cache-path=%t -fmodules -fimplicit-module-maps -F %S/Inputs %s -verify -DERRORS
+// RUN: %clang_cc1 -Wauto-import -fmodules-cache-path=%t -fmodules -fimplicit-module-maps -F %S/Inputs %s -verify
+// RUN: %clang_cc1 -Wauto-import -fmodules-cache-path=%t -fmodules -fimplicit-module-maps -F %S/Inputs -xobjective-c++ %s -verify
 // 
 // Test both with and without the declarations that refer to unimported
 // entities. For error recovery, those cases implicitly trigger an import.
@@ -82,3 +83,19 @@ int getNoUmbrellaBPrivateFail() { return no_umbrella_B_private; } // expected-er
 int getNotInModule() {
   return not_in_module;
 }
+
+void includeNotAtTopLevel() { // expected-note {{function 'includeNotAtTopLevel' begins here}}
+  #include <NoUmbrella/A.h> // expected-warning {{treating #include as an import}} \
+			       expected-error {{redundant #include of module 'NoUmbrella.A' appears within function 'includeNotAtTopLevel'}}
+}
+
+#ifdef __cplusplus
+namespace NS { // expected-note {{begins here}}
+#include <NoUmbrella/A.h> // expected-warning {{treating #include as an import}} \
+                             expected-error {{redundant #include of module 'NoUmbrella.A' appears within namespace 'NS'}}
+}
+extern "C" { // expected-note {{begins here}}
+#include <NoUmbrella/A.h> // expected-warning {{treating #include as an import}} \
+                             expected-error {{import of C++ module 'NoUmbrella.A' appears within extern "C"}}
+}
+#endif
