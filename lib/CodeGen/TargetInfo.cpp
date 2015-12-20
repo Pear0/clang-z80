@@ -6532,7 +6532,7 @@ ABIArgInfo Z80ABIInfo::classifyReturnType(QualType RetTy) const {
 CodeGen::Address Z80ABIInfo::EmitVAArg(CodeGen::CodeGenFunction &CGF,
   CodeGen::Address VAListAddr, QualType Ty) const {
   assert(0 && "Not implemented yet!");
-  return CodeGen::Address(NULL, 8);
+  return CodeGen::Address(nullptr, 8);
 }
 
 //===----------------------------------------------------------------------===//
