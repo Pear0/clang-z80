@@ -6495,8 +6495,9 @@ namespace {
 
     virtual void computeInfo(CGFunctionInfo &FI) const;
 
-    virtual llvm::Value *EmitVAArg(llvm::Value *VAListAddr, QualType Ty,
-                                   CodeGenFunction &CGF) const;
+    virtual CodeGen::Address EmitVAArg(CodeGen::CodeGenFunction &CGF,
+                                       CodeGen::Address VAListAddr,
+                                       QualType Ty) const;
   }; // end class Z80ABIInfo
 
   class Z80TargetCodeGenInfo : public TargetCodeGenInfo {
@@ -6528,8 +6529,8 @@ ABIArgInfo Z80ABIInfo::classifyReturnType(QualType RetTy) const {
   return ABIArgInfo::getDirect();
 }
 
-llvm::Value *Z80ABIInfo::EmitVAArg(llvm::Value *VAListAddr, QualType Ty,
-  CodeGenFunction &CGF) const {
+CodeGen::Address Z80ABIInfo::EmitVAArg(CodeGen::CodeGenFunction &CGF,
+  CodeGen::Address VAListAddr, QualType Ty) const {
   assert(0 && "Not implemented yet!");
   return NULL;
 }
