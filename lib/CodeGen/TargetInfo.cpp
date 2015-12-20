@@ -17,6 +17,7 @@
 #include "CGCXXABI.h"
 #include "CGValue.h"
 #include "CodeGenFunction.h"
+#include "Address.h"
 #include "clang/AST/RecordLayout.h"
 #include "clang/CodeGen/CGFunctionInfo.h"
 #include "clang/Frontend/CodeGenOptions.h"
@@ -6495,8 +6496,8 @@ namespace {
 
     virtual void computeInfo(CGFunctionInfo &FI) const;
 
-    virtual CodeGen::Address EmitVAArg(CodeGen::CodeGenFunction &CGF,
-                                       CodeGen::Address VAListAddr,
+    virtual Address EmitVAArg(CodeGen::CodeGenFunction &CGF,
+                                       Address VAListAddr,
                                        QualType Ty) const;
   }; // end class Z80ABIInfo
 
@@ -6529,10 +6530,10 @@ ABIArgInfo Z80ABIInfo::classifyReturnType(QualType RetTy) const {
   return ABIArgInfo::getDirect();
 }
 
-CodeGen::Address Z80ABIInfo::EmitVAArg(CodeGen::CodeGenFunction &CGF,
-  CodeGen::Address VAListAddr, QualType Ty) const {
+Address Z80ABIInfo::EmitVAArg(CodeGen::CodeGenFunction &CGF,
+  Address VAListAddr, QualType Ty) const {
   assert(0 && "Not implemented yet!");
-  return CodeGen::Address((llvm:Value*)nullptr, 8);
+  return Address(nullptr, 8);
 }
 
 //===----------------------------------------------------------------------===//
