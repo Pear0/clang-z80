@@ -6517,7 +6517,7 @@ void Z80ABIInfo::computeInfo(CGFunctionInfo &FI) const {
 
 ABIArgInfo Z80ABIInfo::classifyArgumentType(QualType Ty) const {
   if (isAggregateTypeForABI(Ty))
-    return ABIArgInfo::getIndirect(CharUnits::zero());
+    return ABIArgInfo::getIndirect(CharUnits::Zero());
 
   return ABIArgInfo::getDirect();
 }
@@ -6526,7 +6526,7 @@ ABIArgInfo Z80ABIInfo::classifyReturnType(QualType RetTy) const {
   if (RetTy->isVoidType())
     return ABIArgInfo::getIgnore();
   if (isAggregateTypeForABI(RetTy))
-    return ABIArgInfo::getIndirect(0);
+    return ABIArgInfo::getIndirect(CharUnits::Zero());
   return ABIArgInfo::getDirect();
 }
 
