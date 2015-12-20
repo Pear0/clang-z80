@@ -7486,34 +7486,31 @@ namespace {
       LongWidth = 32; LongAlign = 8;
       LongLongWidth = 64; LongLongAlign = 8;
       PointerWidth = 16; PointerAlign = 8;
-      SizeType = UnsignedInt;
-      IntMaxType = SignedLong;
-      UIntMaxType = UnsignedLong;
-      IntPtrType = SignedShort;
-      PtrDiffType = SignedInt;
-      SigAtomicType = SignedLong;
-      DescriptionString = "e-p:16:8:8-i8:8:8-i16:8:8-n8:16";
+      //SizeType = UnsignedInt;
+      //IntMaxType = SignedLong;
+      //UIntMaxType = UnsignedLong;
+      //IntPtrType = SignedShort;
+      //PtrDiffType = SignedInt;
+      //SigAtomicType = SignedLong;
+      //DescriptionString = "e-p:16:8:8-i8:8:8-i16:8:8-n8:16";
+      DataLayoutString = "e-p:16:8:8-i8:8:8-i16:8:8-i32:8:8-i64:8:8-f32:8:8-f64:8:8-n8:16";
     }
     virtual void getTargetDefines(const LangOptions &Opts,
                                   MacroBuilder &Builder) const {
       Builder.defineMacro("Z80");
       Builder.defineMacro("__Z80__");
     }
-    virtual void getTargetBuiltins(const Builtin::Info *&Records,
-                                   unsigned &NumRecords) const {
-      Records = 0;
-      NumRecords = 0;
+    virtual ArrayRef<Builtin::Info> getTargetBuiltins() const {
+      //Records = 0;
+      //NumRecords = 0;
+        return llvm::makeArrayRef(BuiltinInfo,
+                       clang::Z80::LastTSBuiltin - Builtin::FirstTSBuiltin);
     }
     virtual bool hasFeature(StringRef Feature) const {
       return Feature == "z80";
     }
-    virtual void getGCCRegNames(const char* const *&Names,
-                                unsigned &NumNames) const;
-    virtual void getGCCRegAliases(const GCCRegAlias *&Aliases,
-                                  unsigned &NumAliases) const {
-      Aliases = 0;
-      NumAliases = 0;
-    }
+    virtual ArrayRef<const char *> getGCCRegNames() const;
+    virtual ArrayRef<GCCRegAlias> getGCCRegAliases() const;
     virtual bool validateAsmConstraint(const char *&Name,
                                        TargetInfo::ConstraintInfo &info) const {
       return false;
@@ -7531,10 +7528,11 @@ namespace {
     "bc", "de", "hl", "ix", "iy", "sp", "pc"
   };
 
-  void Z80TargetInfo::getGCCRegNames(const char* const *&Names,
-                                     unsigned &NumNames) const {
-    Names = GCCRegNames;
-    NumNames = llvm::array_lengthof(GCCRegNames);
+  ArrayRef<const char *> Z80TargetInfo::getGCCRegNames() const {
+      return llvm::makeArrayRef(GCCRegNames);
+  }
+  ArrayRef<GCCRegAlias> Z80TargetInfo::getGCCRegAliases() const {
+      return llvm::makeArrayRef(GCCRegAliases);
   }
 } // end namespace
 
