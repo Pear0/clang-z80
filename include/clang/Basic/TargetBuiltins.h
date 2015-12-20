@@ -92,7 +92,7 @@ namespace clang {
         LastTSBuiltin
     };
   }
-
+  
   /// \brief Flags to identify the types for overloaded Neon builtins.
   ///
   /// These must be kept in sync with the flags in utils/TableGen/NeonEmitter.h.
@@ -185,7 +185,17 @@ namespace clang {
         LastTSBuiltin
     };
   }
-
+  
+  /// \brief Z80 builtins
+  namespace Z80 {
+    enum {
+        LastTIBuiltin = clang::Builtin::FirstTSBuiltin-1,
+#define BUILTIN(ID, TYPE, ATTRS) BI##ID,
+#include "clang/Basic/BuiltinsZ80.def"
+        LastTSBuiltin
+    };
+  }
+  
   /// \brief WebAssembly builtins
   namespace WebAssembly {
     enum {

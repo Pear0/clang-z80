@@ -7510,7 +7510,7 @@ namespace {
       return Feature == "z80";
     }
     virtual ArrayRef<const char *> getGCCRegNames() const;
-    virtual ArrayRef<GCCRegAlias> getGCCRegAliases() const;
+    virtual ArrayRef<TargetInfo::GCCRegAlias> getGCCRegAliases() const;
     virtual bool validateAsmConstraint(const char *&Name,
                                        TargetInfo::ConstraintInfo &info) const {
       return false;
@@ -7525,13 +7525,22 @@ namespace {
 
   const char* const Z80TargetInfo::GCCRegNames[] = {
     "a", "b", "c", "d", "e", "h", "l", "xl", "xh", "yl", "yh",
-    "bc", "de", "hl", "ix", "iy", "sp", "pc"
+    "bc", "de", "hl", "ix", "iy", "sp", "pc", "bcde", "hlix", "bcdehlix"
   };
 
   ArrayRef<const char *> Z80TargetInfo::getGCCRegNames() const {
       return llvm::makeArrayRef(GCCRegNames);
   }
-  ArrayRef<GCCRegAlias> Z80TargetInfo::getGCCRegAliases() const {
+  
+  const TargetInfo::GCCRegAlias Z80TargetInfo::GCCRegAliases[] = {
+    //{ { "0" }, "r0" },
+    //{ { "1"}, "r1" },
+    //{ { "2" }, "r2" },
+    //{ { "3" }, "r3" },
+    //{ { "4" }, "r4" },
+  };
+  
+  ArrayRef<TargetInfo::GCCRegAlias> Z80TargetInfo::getGCCRegAliases() const {
       return llvm::makeArrayRef(GCCRegAliases);
   }
 } // end namespace
