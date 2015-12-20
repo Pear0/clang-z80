@@ -7477,7 +7477,7 @@ public:
 namespace {
   class Z80TargetInfo : public TargetInfo {
     static const char *const GCCRegNames[];
-    static const GCCRegAlias Z80TargetInfo::GCCRegAliases[];
+    static const TargetInfo::GCCRegAlias GCCRegAliases[];
     bool IsKnightOS;
   public:
     Z80TargetInfo(const llvm::Triple &Triple, const bool isKnightOS) : TargetInfo(Triple), IsKnightOS(isKnightOS) {
